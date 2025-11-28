@@ -1,9 +1,5 @@
 
-"""
-Created on Fri Nov  7 21:31:45 2025
 
-@author: Ismail
-"""
 
 import os
 from PIL import Image 
