@@ -1,82 +1,49 @@
-# Pneumonia Detection using Deep Learning (ResNet18)
+# Pneumonia Detection from Chest X-Rays (ResNet18)
 
-# Description du Projet :
-Ce projet utilise un réseau de neurones convolutionnel (CNN), basé sur **ResNet18 pré-entraîné**, pour classer des radiographies thoraciques en deux catégories :
+Deep learning project that classifies chest X-ray images as **NORMAL** or **PNEUMONIA**, using transfer learning with an ImageNet-pretrained ResNet18 (PyTorch). Built as a decision-support prototype, not a clinical tool.
 
-- **NORMAL**
-- **PNEUMONIA**
+## Dataset
+[Chest X-Ray Images (Pneumonia)](https://www.kaggle.com/datasets/paultimothymooney/chest-xray-pneumonia) (5,856 images).
+- Train: 4,447 images (1,147 NORMAL / 3,300 PNEUMONIA)
+- Validation: 785 images (stratified split from the original train + val folders, because the official val folder has only 16 images)
+- Test: 624 images (official test set, never used for training or model selection)
 
-L’objectif est de construire un modèle capable d’aider à la détection automatique de la pneumonie à partir d’images médicales.
+## Approach
+1. Preprocessing: resize to 224×224, ImageNet normalization
+2. Data augmentation: random crop, rotation (10°), brightness/contrast jitter (no horizontal flip, to keep the anatomy consistent)
+3. Model: ResNet18 pretrained on ImageNet, final layer replaced for 2 classes
+4. Class imbalance: weighted cross-entropy loss (weights computed from the training set)
+5. Training: Adam (lr = 1e-4), 10 epochs, best epoch selected on validation balanced accuracy
+6. Evaluation: one final evaluation on the held-out test set
 
----
+## Results (test set, 624 images)
 
-# Objectifs du Projet
-- Charger et prétraiter les images du dataset **Chest X-Ray**.
-- Entraîner un modèle ResNet18 pour une classification binaire.
-- Évaluer le modèle via Accuracy, Matrice de Confusion et Classification Report.
-- Sauvegarder le modèle entraîné et la courbe de performance.
+| Metric | Value |
+|---|---|
+| Accuracy | 92.3% |
+| Recall (PNEUMONIA) | 99.5% |
+| Specificity (NORMAL) | 80.3% |
+| Precision (PNEUMONIA) | 89.4% |
+| F1-score (PNEUMONIA) | 0.942 |
+| AUC | 0.989 |
 
----
+Confusion matrix: 388 of 390 pneumonia cases detected; 46 of 234 normal images flagged as pneumonia.
 
-# Approche
-1. **Prétraitement des images**
-   - Redimensionnement en 224×224  
-   - Normalisation  
-   - Conversion en tenseurs
+![Confusion matrix](confusion_matrix.png)
+![Training history](training_history.png)
 
-2. **Utilisation d’un modèle pré-entraîné**
-   - ResNet18 avec poids **ImageNet**
-   - Modification de la couche fully connected pour 2 classes
+## Limitations
+- The model favors recall: it rarely misses pneumonia, but produces false positives on normal X-rays.
+- Single dataset, no external validation. Test accuracy is lower than validation accuracy, which is common with this dataset.
+- Research/educational prototype, not for clinical use.
 
-3. **Entraînement**
-   - Optimiseur Adam  
-   - Cross Entropy Loss  
-   - 10 époques d’entraînement
+## Files
+- `main.py`: full pipeline (data loading, training, evaluation, plots)
+- `pneumonia_classifier.pth`: trained weights (best epoch)
+- `training_history.png`, `confusion_matrix.png`: results
 
-4. **Évaluation**
-   - Accuracy sur validation et test
-   - Rapport de classification détaillé
-   - Sauvegarde d'un graphique : `training_history.png`
+## Run
+Tested on Kaggle (GPU). Add the dataset to the notebook, turn Internet on, and run `main.py`. The data folder is detected automatically.
 
----
-
-# Structure du Dataset 
-Le projet utilise le dataset officiel *Chest X-Ray Images (Pneumonia)* organisé comme suit :
-
-```
-chest_xray/
-│── train/
-│    ├── NORMAL/
-│    └── PNEUMONIA/
-│── val/
-│    ├── NORMAL/
-│    └── PNEUMONIA/
-│── test/
-     ├── NORMAL/
-     └── PNEUMONIA/
-```
-
----
-
-# Résultats
-Après entraînement :
-
-- Le modèle obtient une **accuracy élevée sur le jeu de test**.
-- Un rapport complet est généré (Precision, Recall, F1-score).
-- Un fichier image des courbes d'entraînement est sauvegardé :
-  - `training_history.png`
-- Le modèle final est sauvegardé :
-  - `pneumonia_classifier.pth`
-
----
-
-# Fichiers Principaux
-- `main.py` — Script complet du modèle (chargement dataset, training, évaluation)
-- `pneumonia_classifier.pth` — Modèle sauvegardé
-- `training_history.png` — Graphiques des pertes & accuracy
-- `README.md` — Documentation du projet
-
----
-
-## 👤 Auteur
-Projet réalisé par **Chahboune Ismail**
+## Author
+Ismail Chahboune
